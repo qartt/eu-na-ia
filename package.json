@@ -1,0 +1,19 @@
+{
+  "name": "eu-na-ia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Check-up de presença profissional para devs: mede o que as IAs dizem sobre você, aponta inconsistências e gera perfil e dados estruturados. Roda no GitHub Actions.",
+  "type": "module",
+  "scripts": {
+    "checkup": "node src/cli.mjs",
+    "checkup:local": "node src/cli.mjs --sem-medicao",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "author": "João Cabral — Qartt Tecnologia (https://qartt.com.br)",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/qartt/eu-na-ia.git" },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  }
+}

@@ -1,0 +1,21 @@
+name: Testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore: ['perfil.yml', 'README.md', 'PERFIL.md', 'site/**', 'relatorio/**']
+
+jobs:
+  testes:
+    # roda só no repositório original, não nas cópias feitas pelo template
+    if: github.repository == 'qartt/eu-na-ia'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
