@@ -1,0 +1,16 @@
+# João Cabral
+
+> Desenvolvedor WordPress e especialista em SEO em Belo Horizonte, MG, Brasil.
+
+Desenvolvo plugins WordPress sob medida e estratégias de SEO técnico para empresas B2B. Mantenho o GeoSim, biblioteca open source de simulações geofísicas didáticas.
+
+Especialidades: WordPress, PHP, SEO técnico, Plugins WordPress sob medida.
+
+## Perfis
+
+- [Site](https://qartt.com.br/): site principal
+- [GitHub](https://github.com/qartt): repositórios e contribuições
+
+## Projetos
+
+- [GeoSim](https://qartt.github.io/geosim/): Simulações geofísicas didáticas como Web Components, sem dependências.

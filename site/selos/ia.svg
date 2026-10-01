@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="194" height="20" role="img" aria-label="citado pelas IAs: sem medição">
+<title>citado pelas IAs: sem medição</title>
+<linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
+<clipPath id="c"><rect width="194" height="20" rx="3" fill="#fff"/></clipPath>
+<g clip-path="url(#c)"><rect width="108" height="20" fill="#3b4a5a"/><rect x="108" width="86" height="20" fill="#8a96a3"/><rect width="194" height="20" fill="url(#s)"/></g>
+<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11">
+<text x="54" y="14">citado pelas IAs</text><text x="151" y="14">sem medição</text></g>
+</svg>

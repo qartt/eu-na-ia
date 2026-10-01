@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerar perfil.yml — Eu na IA</title>
+<meta name="description" content="Preencha o formulário e copie o perfil.yml pronto para o seu check-up de presença profissional.">
+<style>
+:root{--bg:#fbfaf7;--ink:#17202a;--soft:#5b6773;--line:#dcd8cf;--accent:#1f6f5c;--field:#fff;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#12171c;--ink:#e9eef2;--soft:#9aa6b1;--line:#2c3742;--accent:#7fd1b9;--field:#192129;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding:48px 24px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+h1{font:700 clamp(1.8rem,4vw,2.4rem)/1.1 Georgia,serif;margin:0 0 8px;grid-column:1/-1}
+.intro{color:var(--soft);margin:0 0 8px;max-width:64ch;grid-column:1/-1}
+fieldset{border:0;padding:0;margin:0 0 20px}
+legend{font-weight:700;margin-bottom:8px}
+label{display:block;font-size:.9rem;color:var(--soft);margin:12px 0 4px}
+input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+textarea{min-height:88px;resize:vertical}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.dica{font-size:.8rem;color:var(--soft);margin-top:4px}
+.saida{position:sticky;top:24px;align-self:start}
+pre{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:16px;overflow:auto;max-height:70vh;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+button{font:600 .95rem system-ui,sans-serif;background:var(--accent);color:var(--bg);border:0;border-radius:999px;padding:11px 20px;cursor:pointer}
+.passos{font-size:.9rem;color:var(--soft);padding-left:20px}
+.tipo{display:flex;gap:8px;margin:0 0 8px}
+.tipo label{margin:0;display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);cursor:pointer}
+.tipo input{width:auto}
+[data-so][hidden]{display:none}
+.check{display:flex;align-items:center;gap:8px;color:var(--ink)}
+.check input{width:auto}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<main>
+<h1>Gerar o seu perfil.yml</h1>
+<p class="intro">Para você ou para uma empresa. Preencha, copie o resultado e cole no arquivo <code>perfil.yml</code> do seu repositório criado a partir do <a href="https://github.com/qartt/eu-na-ia">Eu na IA</a>. Nada é enviado para lugar nenhum: tudo acontece no seu navegador.</p>
+
+<form id="f" autocomplete="off">
+<fieldset>
+<legend>Para quem é o check-up?</legend>
+<div class="tipo" role="radiogroup">
+<label><input type="radio" name="tipo" value="pessoa" checked> Para mim (dev)</label>
+<label><input type="radio" name="tipo" value="empresa"> Para uma empresa</label>
+</div>
+</fieldset>
+<fieldset>
+<legend><span data-so="pessoa">Quem é você</span><span data-so="empresa" hidden>A empresa</span></legend>
+<label for="nome"><span data-so="pessoa">Nome completo *</span><span data-so="empresa" hidden>Nome da empresa *</span></label><input id="nome" required placeholder="Maria Souza">
+<div data-so="pessoa">
+<label for="usuario_github">Usuário do GitHub *</label><input id="usuario_github" placeholder="mariasouza">
+<label for="titulo">Título profissional *</label><input id="titulo" placeholder="Desenvolvedora backend Python">
+</div>
+<div data-so="empresa" hidden>
+<label for="segmento">Segmento *</label><input id="segmento" placeholder="Escritório de contabilidade">
+<label for="nome_legal">Razão social</label><input id="nome_legal" placeholder="opcional">
+</div>
+<label for="apelidos">Outros nomes pelos quais é conhecido</label><input id="apelidos" placeholder="Mari Souza, Maria S.">
+<div class="dica">Separe por vírgula.</div>
+</fieldset>
+<fieldset>
+<legend>Onde</legend>
+<label for="cidade">Cidade</label><input id="cidade" placeholder="Recife">
+<label for="estado">Estado</label><input id="estado" placeholder="PE">
+<label for="pais">País</label><input id="pais" value="Brasil">
+<div data-so="empresa" hidden>
+<label class="check"><input type="checkbox" id="negocio_local"> Atende clientes em endereço físico</label>
+<label for="endereco">Endereço (rua e número)</label><input id="endereco" placeholder="só se for público">
+<label for="telefone">Telefone</label><input id="telefone" placeholder="+55 31 3333-4444">
+</div>
+</fieldset>
+<fieldset>
+<legend>O que você faz</legend>
+<label for="sobre">Sobre (2 ou 3 frases, sem exagero)</label><textarea id="sobre" placeholder="Desenvolvo APIs em Python para fintechs..."></textarea>
+<label for="especialidades"><span data-so="pessoa">Especialidades</span><span data-so="empresa" hidden>Serviços</span></label><input id="especialidades" placeholder="Python, Django, PostgreSQL">
+<div data-so="pessoa"><label for="idiomas">Idiomas</label><input id="idiomas" value="Português"></div>
+</fieldset>
+<fieldset>
+<legend>Links</legend>
+<label for="site">Seu site</label><input id="site" type="url" placeholder="https://mariasouza.dev">
+<div data-so="pessoa">
+<label for="empresa">Empresa onde trabalha</label><input id="empresa" placeholder="opcional">
+<label for="empresa_site">Site da empresa</label><input id="empresa_site" type="url" placeholder="https://...">
+</div>
+<label for="linkedin">LinkedIn</label><input id="linkedin" type="url" placeholder="https://www.linkedin.com/...">
+<div data-so="empresa" hidden>
+<label for="instagram">Instagram</label><input id="instagram" type="url" placeholder="https://instagram.com/...">
+<label for="google_negocio">Perfil da Empresa no Google</label><input id="google_negocio" type="url" placeholder="link do Google Maps">
+<label for="usuario_github_emp">GitHub da empresa</label><input id="usuario_github_emp" placeholder="opcional">
+</div>
+</fieldset>
+<fieldset data-so="empresa" hidden>
+<legend>Concorrentes (opcional)</legend>
+<label for="concorrentes">Nomes, separados por vírgula</label><input id="concorrentes" placeholder="Contábil Alfa, Escritório Beta">
+<div class="dica">O relatório mostra quem as IAs citam: você ou eles.</div>
+</fieldset>
+<fieldset data-so="pessoa">
+<legend>Projeto em destaque</legend>
+<label for="p_nome">Nome</label><input id="p_nome" placeholder="meu-projeto">
+<label for="p_repo">Repositório</label><input id="p_repo" placeholder="mariasouza/meu-projeto">
+<label for="p_desc">Descrição curta</label><input id="p_desc" placeholder="O que ele faz, em uma frase">
+</fieldset>
+</form>
+
+<section class="saida" aria-live="polite">
+<pre id="yaml"></pre>
+<p><button type="button" id="copiar">Copiar perfil.yml</button></p>
+<ol class="passos">
+<li>No GitHub, use "Use this template". Para você: dê ao repositório <strong>o mesmo nome do seu usuário</strong>. Para uma empresa: qualquer nome, como <code>presenca</code>.</li>
+<li>Abra o <code>perfil.yml</code>, clique no lápis, apague tudo e cole.</li>
+<li>Salve (Commit changes). Em cerca de 1 minuto o seu perfil e o relatório ficam prontos.</li>
+</ol>
+</section>
+</main>
+<script>
+(function () {
+	var form = document.getElementById('f');
+	function v(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+	function q(s) { return JSON.stringify(s); }
+	function lista(s) { return s.split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
+	function bloco(nome, itens, ind) { ind = ind || ''; return itens.length ? ind + nome + ':\n' + itens.map(function (i) { return ind + '  - ' + q(i); }).join('\n') + '\n' : ind + nome + ': []\n'; }
+	function tipo() { return form.querySelector('input[name=tipo]:checked').value; }
+	function alternar() {
+		var t = tipo();
+		document.querySelectorAll('[data-so]').forEach(function (el) { el.hidden = el.getAttribute('data-so') !== t; });
+		document.getElementById('nome').placeholder = t === 'empresa' ? 'Contábil Exemplo' : 'Maria Souza';
+		document.getElementById('especialidades').placeholder = t === 'empresa' ? 'Contabilidade para startups, Abertura de empresas' : 'Python, Django, PostgreSQL';
+		document.getElementById('sobre').placeholder = t === 'empresa' ? 'Escritório de contabilidade em Recife que atende startups...' : 'Desenvolvo APIs em Python para fintechs...';
+		gerar();
+	}
+	function gerar() {
+		var emp = tipo() === 'empresa';
+		var y = '# Gerado pelo formulário do Eu na IA (github.com/qartt/eu-na-ia)\n';
+		if (emp) y += 'tipo: empresa\n';
+		y += 'nome: ' + q(v('nome')) + '\n';
+		if (emp && v('nome_legal')) y += 'nome_legal: ' + q(v('nome_legal')) + '\n';
+		y += bloco('apelidos', lista(v('apelidos')));
+		if (emp) {
+			y += 'segmento: ' + q(v('segmento')) + '\n';
+			y += 'descricao: ' + q(v('sobre')) + '\n';
+			y += bloco('servicos', lista(v('especialidades')));
+			if (v('usuario_github_emp')) y += 'usuario_github: ' + q(v('usuario_github_emp').replace(/^@/, '')) + '\n';
+		} else {
+			y += 'usuario_github: ' + q(v('usuario_github').replace(/^@/, '')) + '\n';
+			y += 'titulo: ' + q(v('titulo')) + '\n';
+			y += 'sobre: ' + q(v('sobre')) + '\n';
+			y += bloco('especialidades', lista(v('especialidades')));
+			y += bloco('idiomas', lista(v('idiomas')));
+		}
+		y += 'cidade: ' + q(v('cidade')) + '\nestado: ' + q(v('estado')) + '\npais: ' + q(v('pais')) + '\n';
+		y += 'site: ' + q(v('site')) + '\n';
+		if (emp) {
+			y += 'negocio_local: ' + (document.getElementById('negocio_local').checked ? 'true' : 'false') + '\n';
+			y += 'endereco: ' + q(v('endereco')) + '\ntelefone: ' + q(v('telefone')) + '\n';
+			y += 'links:\n  linkedin: ' + q(v('linkedin')) + '\n  instagram: ' + q(v('instagram')) + '\n  google_negocio: ' + q(v('google_negocio')) + '\n  outros: []\n';
+			var c = lista(v('concorrentes'));
+			y += c.length ? 'concorrentes:\n' + c.map(function (n) { return '  - nome: ' + q(n); }).join('\n') + '\n' : 'concorrentes: []\n';
+			y += 'medicao:\n  motores: [anthropic, openai, gemini, perplexity]\n  perguntas:\n';
+			y += '    - "Quais são as melhores empresas de {servico} em {cidade}?"\n';
+			y += '    - "O que faz a {nome}, de {cidade}?"\n';
+			y += '    - "Qual {segmento} você recomenda em {cidade}, {estado}?"\n';
+			if (c.length) y += '    - "Quais são as alternativas à {concorrente}?"\n';
+			y += 'publicar_pages: false\n';
+		} else {
+			y += 'empresa:\n  nome: ' + q(v('empresa')) + '\n  site: ' + q(v('empresa_site')) + '\n';
+			y += 'links:\n  linkedin: ' + q(v('linkedin')) + '\n  outros: []\n';
+			y += v('p_nome') ? 'projetos_destaque:\n  - nome: ' + q(v('p_nome')) + '\n    repo: ' + q(v('p_repo')) + '\n    descricao: ' + q(v('p_desc')) + '\n' : 'projetos_destaque: []\n';
+			y += 'medicao:\n  motores: [anthropic, openai, gemini, perplexity]\n  perguntas:\n';
+			y += '    - "Quem é {nome}, {titulo} em {cidade}?"\n';
+			y += '    - "Indique desenvolvedores de {especialidade} em {cidade}, {estado}."\n';
+			if (v('p_nome')) y += '    - "Quem criou o projeto open source {projeto}?"\n';
+			y += 'publicar_pages: true\n';
+		}
+		document.getElementById('yaml').textContent = y;
+	}
+	form.addEventListener('input', gerar);
+	form.addEventListener('change', function (e) { if (e.target.name === 'tipo') alternar(); else gerar(); });
+	document.getElementById('copiar').addEventListener('click', function () {
+		var t = document.getElementById('yaml').textContent, b = this;
+		(navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () {
+			b.textContent = 'Copiado';
+			setTimeout(function () { b.textContent = 'Copiar perfil.yml'; }, 1800);
+		}, function () {
+			var r = document.createRange(); r.selectNodeContents(document.getElementById('yaml'));
+			var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+		});
+	});
+	alternar();
+})();
+</script>
+</body>
+</html>
