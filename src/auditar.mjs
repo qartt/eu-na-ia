@@ -40,6 +40,63 @@ export function extrairJsonLd(html) {
 
 const tipos = (o) => [].concat(o['@type'] || []).map(String);
 
+const TIPOS_ORG = ['Organization', 'Corporation', 'LocalBusiness', 'ProfessionalService', 'OnlineBusiness', 'OnlineStore', 'Store', 'NGO', 'EducationalOrganization', 'MedicalOrganization', 'LegalService', 'Attorney'];
+export function ehOrganizacao(o) {
+	return tipos(o).some((t) => TIPOS_ORG.includes(t) || /Business$|Store$|Service$|Organization$/.test(t));
+}
+
+const NAO_ORG = ['WebSite', 'WebPage', 'ProfilePage', 'AboutPage', 'ContactPage', 'BreadcrumbList', 'ImageObject', 'Article', 'BlogPosting', 'NewsArticle', 'Product', 'Offer', 'Person', 'SearchAction', 'ItemList', 'ListItem', 'FAQPage', 'Question', 'Answer', 'Review', 'AggregateRating', 'VideoObject', 'Event'];
+
+function sameAsEsperado(perfil) {
+	return [perfil.links.linkedin, perfil.links.instagram, perfil.links.google_negocio, perfil.github_url, ...perfil.links.outros]
+		.filter(Boolean)
+		.map((u) => u.toLowerCase().replace(/\/$/, ''));
+}
+
+const soDigitos = (s) => String(s || '').replace(/\D/g, '');
+
+/** Verificações que só fazem sentido no site de uma empresa. */
+export function verificarPaginaEmpresa(perfil, html) {
+	const out = [];
+	const titulo = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1]?.trim() || '';
+	const desc = (html.match(/<meta[^>]+name=["']description["'][^>]*>/i) || [])[0] || '';
+	const temDesc = /content=["'][^"']{20,}/i.test(desc);
+	const nomes = [perfil.nome, ...perfil.apelidos].map(normalizar);
+	const tituloTemNome = nomes.some((n) => n && normalizar(titulo).includes(n));
+	out.push(item('site_titulo', 'Título da página inicial traz o nome da empresa', 'provavel',
+		!titulo ? 'falha' : tituloTemNome ? 'ok' : 'atencao', titulo ? `"${titulo.slice(0, 90)}"` : 'Sem <title>',
+		'O título da página inicial deve conter o nome da empresa e o que ela faz. É o que buscadores e IAs mostram primeiro.'));
+	out.push(item('site_descricao', 'Meta description na página inicial', 'provavel', temDesc ? 'ok' : 'falha',
+		temDesc ? 'Presente' : 'Ausente ou muito curta',
+		'Escreva uma descrição de 1 ou 2 frases dizendo o que a empresa faz e onde atende.'));
+	if (perfil.telefone) {
+		const tel = soDigitos(perfil.telefone).slice(-8);
+		const achou = tel.length >= 8 && soDigitos(html).includes(tel);
+		out.push(item('site_telefone', 'Telefone do perfil aparece no site', 'provavel', achou ? 'ok' : 'atencao',
+			achou ? 'Encontrado na página inicial' : `"${perfil.telefone}" não encontrado na página inicial`,
+			'Nome, endereço e telefone devem ser idênticos no site, no Google e nas redes. Divergências enfraquecem a identificação da empresa.'));
+	}
+	return out;
+}
+
+async function verificarSitemap(site, fetchImpl) {
+	const origem = new URL(site).origin;
+	const candidatos = [];
+	try {
+		const r = await buscar(`${origem}/robots.txt`, {}, fetchImpl);
+		if (r.ok) for (const m of (await r.text()).matchAll(/^\s*sitemap:\s*(\S+)/gim)) candidatos.push(m[1]);
+	} catch { /* segue para os caminhos comuns */ }
+	candidatos.push(`${origem}/sitemap.xml`, `${origem}/sitemap_index.xml`, `${origem}/wp-sitemap.xml`);
+	for (const u of [...new Set(candidatos)]) {
+		try {
+			const r = await buscar(u, {}, fetchImpl);
+			if (r.ok) return item('sitemap', 'Sitemap XML publicado', 'provavel', 'ok', u, '');
+		} catch { /* tenta o próximo */ }
+	}
+	return item('sitemap', 'Sitemap XML publicado', 'provavel', 'falha', 'Nenhum sitemap encontrado',
+		'Publique um sitemap.xml e declare-o no robots.txt (linha "Sitemap: ..."). No WordPress, Yoast, Rank Math e o próprio WordPress geram automaticamente.');
+}
+
 /** Robôs de IA bloqueados por completo no robots.txt (Disallow: / no grupo aplicável). */
 export function robosBloqueados(robots, robos = ROBOS_IA) {
 	const grupos = [];
@@ -97,14 +154,16 @@ export async function auditar(perfil, { token = '', fetchImpl = globalThis.fetch
 	const u = perfil.usuario_github;
 	const nomeNorm = normalizar(perfil.nome);
 
-	// ── GitHub ─────────────────────────────────────────────
+	const emp = perfil.tipo === 'empresa';
+
+	// ── GitHub (perfil pessoal) ────────────────────────────
 	let usuario = null;
-	try {
+	if (!emp) try {
 		usuario = await gh(`/users/${u}`, token, fetchImpl);
 	} catch (e) {
 		itens.push(item('gh_api', 'Leitura do perfil no GitHub', 'comprovado', 'pulado', e.message));
 	}
-	if (usuario === null && !itens.length) {
+	if (!emp && usuario === null && !itens.length) {
 		itens.push(item('gh_existe', 'Usuário do GitHub existe', 'comprovado', 'falha', `@${u} não encontrado`, 'Confira "usuario_github" no perfil.yml.'));
 	}
 	if (usuario) {
@@ -190,19 +249,30 @@ export async function auditar(perfil, { token = '', fetchImpl = globalThis.fetch
 		}
 		if (html != null) {
 			const objs = extrairJsonLd(html);
-			const pessoa = objs.find((o) => tipos(o).includes('Person'));
-			itens.push(item('site_person', 'Site tem dados estruturados de Person', 'provavel', pessoa ? 'ok' : 'falha',
-				pessoa ? `Person: "${pessoa.name || 'sem nome'}"` : `Nenhum Person em ${objs.length} bloco(s) JSON-LD`,
-				'Cole o conteúdo de site/snippet-jsonld.html no <head> da página "sobre" do seu site.'));
-			if (pessoa) {
-				const sa = [].concat(pessoa.sameAs || []).map((s) => String(s).toLowerCase().replace(/\/$/, ''));
-				itens.push(item('site_sameas', 'Dados estruturados ligam o site ao GitHub (sameAs)', 'provavel',
-					sa.includes(perfil.github_url.toLowerCase()) ? 'ok' : 'falha',
+			const nomesEmp = [perfil.nome, ...perfil.apelidos].map(normalizar);
+			// LocalBusiness tem centenas de subtipos (Bakery, Dentist, Restaurant…): aceita qualquer tipo
+			// não-documental cujo nome seja o da empresa.
+			const entidade = emp
+				? objs.find(ehOrganizacao) || objs.find((o) => nomesEmp.includes(normalizar(o.name)) && !tipos(o).some((t) => NAO_ORG.includes(t)))
+				: objs.find((o) => tipos(o).includes('Person'));
+			const rotuloTipo = emp ? 'Organization/LocalBusiness' : 'Person';
+			itens.push(item(emp ? 'site_org' : 'site_person', `Site tem dados estruturados de ${emp ? 'organização' : 'Person'}`, 'provavel', entidade ? 'ok' : 'falha',
+				entidade ? `${tipos(entidade).join('/')}: "${entidade.name || 'sem nome'}"` : `Nenhum ${rotuloTipo} em ${objs.length} bloco(s) JSON-LD`,
+				`Cole o conteúdo de site/snippet-jsonld.html no <head> ${emp ? 'da página inicial' : 'da página "sobre"'} do seu site.`));
+			if (entidade) {
+				const sa = [].concat(entidade.sameAs || []).map((x) => String(x).toLowerCase().replace(/\/$/, ''));
+				const esperados = emp ? sameAsEsperado(perfil) : [perfil.github_url.toLowerCase()];
+				const presentes = esperados.filter((e) => sa.includes(e));
+				itens.push(item('site_sameas', emp ? 'Dados estruturados listam os perfis oficiais (sameAs)' : 'Dados estruturados ligam o site ao GitHub (sameAs)', 'provavel',
+					!esperados.length ? (sa.length ? 'ok' : 'atencao') : presentes.length === esperados.length ? 'ok' : presentes.length ? 'atencao' : 'falha',
 					sa.length ? `sameAs: ${sa.join(', ')}` : 'sameAs vazio',
-					`Inclua ${perfil.github_url} em "sameAs". É o que conecta o site e o GitHub como a mesma pessoa.`));
+					emp
+						? `Liste em "sameAs" todos os perfis oficiais (${esperados.join(', ') || 'LinkedIn, Instagram, Google'}). É o que conecta o site aos canais da empresa.`
+						: `Inclua ${perfil.github_url} em "sameAs". É o que conecta o site e o GitHub como a mesma pessoa.`));
 				itens.push(item('site_nome', 'Nome nos dados estruturados igual ao do perfil', 'provavel',
-					normalizar(pessoa.name) === nomeNorm ? 'ok' : 'atencao', `"${pessoa.name || ''}"`, 'Use exatamente o mesmo nome em todos os lugares.'));
+					normalizar(entidade.name) === nomeNorm ? 'ok' : 'atencao', `"${entidade.name || ''}"`, 'Use exatamente o mesmo nome em todos os lugares.'));
 			}
+			if (emp) itens.push(...verificarPaginaEmpresa(perfil, html));
 		}
 		const origem = (() => { try { return new URL(perfil.site).origin; } catch { return ''; } })();
 		if (origem) {
@@ -234,10 +304,23 @@ export async function auditar(perfil, { token = '', fetchImpl = globalThis.fetch
 		}
 	}
 
+	if (emp && perfil.site) {
+		try {
+			itens.push(await verificarSitemap(perfil.site, fetchImpl));
+		} catch (e) {
+			itens.push(item('sitemap', 'Sitemap XML publicado', 'provavel', 'pulado', e.message));
+		}
+	}
+
 	// ── Identidade em outros lugares ──────────────────────
-	itens.push(item('linkedin', 'LinkedIn informado', 'provavel', perfil.links.linkedin ? 'ok' : 'atencao',
+	itens.push(item('linkedin', emp ? 'Página da empresa no LinkedIn' : 'LinkedIn informado', 'provavel', perfil.links.linkedin ? 'ok' : 'atencao',
 		perfil.links.linkedin || 'Sem LinkedIn no perfil.yml',
 		'Adicione o link do LinkedIn em "links.linkedin". Ele entra no sameAs e reforça a identidade.'));
+	if (emp && perfil.negocio_local) {
+		itens.push(item('google_negocio', 'Perfil da Empresa no Google informado', 'provavel', perfil.links.google_negocio ? 'ok' : 'falha',
+			perfil.links.google_negocio || 'Sem link do Perfil da Empresa no Google',
+			'Para negócio local, o Perfil da Empresa no Google (antigo Google Meu Negócio) é a principal fonte de dados para buscas locais. Informe o link em "links.google_negocio".'));
+	}
 
 	return { itens, nota: notaPresenca(itens) };
 }

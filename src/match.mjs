@@ -22,7 +22,7 @@ export function analisarResposta({ texto, urls }, termos) {
 	const citacoes = (urls || []).filter((u) => {
 		const h = hostDe(u);
 		if (proprios.has(h)) return true;
-		if (h === 'github.com' || h.endsWith('.github.io')) return String(u).toLowerCase().includes(termos.usuario.toLowerCase());
+		if (termos.usuario && (h === 'github.com' || h.endsWith('.github.io'))) return String(u).toLowerCase().includes(termos.usuario.toLowerCase());
 		return false;
 	});
 

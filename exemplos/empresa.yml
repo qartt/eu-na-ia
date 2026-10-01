@@ -1,0 +1,69 @@
+# ─────────────────────────────────────────────────────────────
+# Eu na IA — modo EMPRESA
+# Copie este conteúdo para o perfil.yml de um repositório criado
+# a partir do template (ex.: suaempresa/presenca). TUDO É PÚBLICO.
+# ─────────────────────────────────────────────────────────────
+
+tipo: empresa
+
+nome: Qartt Tecnologia
+nome_legal: Qartt Tecnologia em Informática
+apelidos:
+  - Qart Tecnologia
+  - Qartt
+
+# O que a empresa é, em poucas palavras (substitui o "titulo" do modo pessoa)
+segmento: Agência de desenvolvimento WordPress e SEO
+
+descricao: >
+  Agência de Belo Horizonte especializada em sites e plugins WordPress
+  sob medida, SEO técnico e soluções digitais para empresas B2B.
+
+servicos:
+  - Desenvolvimento WordPress
+  - Plugins WordPress sob medida
+  - SEO técnico
+  - Otimização para buscas com IA
+
+site: https://qartt.com.br
+logo: ""            # URL de uma imagem do logo (opcional)
+
+cidade: Belo Horizonte
+estado: MG
+pais: Brasil
+
+# Atende clientes em um endereço físico? Se sim, os dados viram LocalBusiness
+# e o check-up exige o Perfil da Empresa no Google.
+negocio_local: false
+endereco: ""        # rua e número, só se for público
+cep: ""
+telefone: ""        # ex.: +55 31 99999-9999 (é conferido no site)
+email_publico: ""
+
+usuario_github: qartt   # opcional: organização ou usuário da empresa no GitHub
+
+links:
+  linkedin: ""        # página da empresa no LinkedIn
+  instagram: ""
+  google_negocio: ""  # link do Perfil da Empresa no Google (Maps)
+  outros: []
+
+# Concorrentes para comparar quem as IAs citam (até 8). Opcional.
+concorrentes: []
+#  - nome: Agência Exemplo
+#    site: https://agenciaexemplo.com.br
+
+projetos_destaque: []
+
+medicao:
+  motores: [anthropic, openai, gemini, perplexity]
+  # {nome}, {segmento}, {servico}, {cidade}, {estado} e {concorrente}
+  # (primeiro serviço e primeiro concorrente). Perguntas cujas variáveis
+  # ficarem sem valor são ignoradas.
+  perguntas:
+    - Quais são as melhores empresas de {servico} em {cidade}?
+    - O que faz a {nome}, de {cidade}?
+    - Qual {segmento} você recomenda em {cidade}, {estado}?
+    - Quais são as alternativas à {concorrente}?
+
+publicar_pages: false

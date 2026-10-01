@@ -9,7 +9,7 @@ export function checkupMd({ perfil, data, auditoria, medicao, historico }) {
 	l.push(`Gerado em ${data} pelo [Eu na IA](${PROJETO_URL}).`, '');
 	l.push('## Resumo', '');
 	l.push(`| Indicador | Resultado |`, `|---|---|`);
-	l.push(`| Presença profissional | ${auditoria ? (auditoria.nota != null ? `**${auditoria.nota}/100**` : 'sem dados') : 'não auditado'} |`);
+	l.push(`| ${perfil.tipo === 'empresa' ? 'Presença da marca' : 'Presença profissional'} | ${auditoria ? (auditoria.nota != null ? `**${auditoria.nota}/100**` : 'sem dados') : 'não auditado'} |`);
 	l.push(`| Citado pelas IAs | ${medicao?.taxa != null ? `**${medicao.taxa}%** das respostas` : 'sem medição (nenhuma chave de API configurada)'} |`, '');
 
 	if (auditoria) {
@@ -32,12 +32,17 @@ export function checkupMd({ perfil, data, auditoria, medicao, historico }) {
 	if (medicao && medicao.resultados.length) {
 		l.push('## O que as IAs responderam', '');
 		l.push('As respostas mudam a cada pergunta. Leia como tendência ao longo dos meses, não como nota exata.', '');
-		l.push('| Motor | Pergunta | Mencionou você? | Citou seus links? |', '|---|---|---|---|');
+		const comRivais = medicao.resultados.some((r) => r.concorrentes && r.concorrentes.length);
+		l.push(`| Motor | Pergunta | Mencionou você? | Citou seus links? |${comRivais ? ' Concorrentes citados |' : ''}`, `|---|---|---|---|${comRivais ? '---|' : ''}`);
 		medicao.resultados.forEach((r) => {
 			const m = r.erro ? `erro: ${escMd(r.erro)}` : r.mencionado ? `✅ ${escMd(r.termos.join(', '))}` : '—';
 			const c = r.erro ? '' : r.citado ? `✅ ${r.citacoes.length}` : '—';
-			l.push(`| ${escMd(r.rotulo)} | ${escMd(r.pergunta)} | ${m} | ${c} |`);
+			l.push(`| ${escMd(r.rotulo)} | ${escMd(r.pergunta)} | ${m} | ${c} |${comRivais ? ` ${escMd((r.concorrentes || []).join(', ') || '—')} |` : ''}`);
 		});
+		if (medicao.participacao && medicao.participacao.length > 1) {
+			l.push('', '### Quem as IAs citaram', '', '| Nome | Aparece em |', '|---|---|');
+			medicao.participacao.forEach((x) => l.push(`| ${x.voce ? `**${escMd(x.nome)}** (você)` : escMd(x.nome)} | ${x.taxa != null ? `${x.taxa}%` : '—'} das respostas |`));
+		}
 		const trechos = medicao.resultados.filter((r) => r.trecho);
 		if (trechos.length) {
 			l.push('', '<details><summary>Trechos onde você aparece</summary>', '');
@@ -54,8 +59,13 @@ export function checkupMd({ perfil, data, auditoria, medicao, historico }) {
 	}
 
 	l.push('## Arquivos gerados', '');
-	l.push('- `site/index.html`: página pessoal com dados estruturados (ProfilePage + Person)');
-	l.push('- `site/snippet-jsonld.html`: bloco para colar no `<head>` da página "sobre" do seu site');
+	if (perfil.tipo === 'empresa') {
+		l.push('- `site/snippet-jsonld.html`: bloco `' + (perfil.negocio_local ? 'LocalBusiness' : 'Organization') + '` para colar no `<head>` da página inicial do site');
+		l.push('- `site/index.html`: página-resumo com os mesmos dados estruturados');
+	} else {
+		l.push('- `site/index.html`: página pessoal com dados estruturados (ProfilePage + Person)');
+		l.push('- `site/snippet-jsonld.html`: bloco para colar no `<head>` da página "sobre" do seu site');
+	}
 	l.push('- `site/perfil.jsonld`: os mesmos dados em JSON');
 	l.push('- `site/llms.txt`: resumo em texto para modelos (aposta, ver evidências)');
 	l.push('');

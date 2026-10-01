@@ -1,8 +1,8 @@
 # Eu na IA
 
-**Check-up de presença profissional para devs.** Mede o que as IAs respondem sobre você, aponta o que está inconsistente no GitHub e no seu site, e gera o README do perfil, uma página pessoal e os dados estruturados. Roda inteiro no GitHub Actions, sem servidor, em português.
+**Check-up de presença para devs e empresas.** Mede o que as IAs respondem sobre você ou sobre a sua empresa, aponta o que está inconsistente no GitHub, no site e nos perfis oficiais, e gera os dados estruturados e os textos que faltam. Roda inteiro no GitHub Actions, sem servidor, em português.
 
-[Gerar meu perfil.yml](https://qartt.github.io/eu-na-ia/gerador.html) · [Exemplo de relatório](relatorio/CHECKUP.md) · [O que tem evidência](docs/EVIDENCIAS.md)
+[Gerar o perfil.yml](https://qartt.github.io/eu-na-ia/gerador.html) · [Exemplo de relatório](relatorio/CHECKUP.md) · [O que tem evidência](docs/EVIDENCIAS.md)
 
 ## O que ele faz
 
@@ -24,6 +24,17 @@
 | `site/llms.txt` | resumo em texto para modelos |
 | `relatorio/CHECKUP.md` | relatório com o que corrigir primeiro e o histórico mês a mês |
 
+## Modo empresa
+
+Coloque `tipo: empresa` no `perfil.yml` (veja [exemplos/empresa.yml](exemplos/empresa.yml)) e o check-up muda de foco:
+
+- **Dados estruturados** `Organization`, ou `LocalBusiness` quando a empresa atende em endereço físico (`negocio_local: true`), com endereço, telefone e todos os perfis oficiais em `sameAs`.
+- **Verificações próprias**: título e meta description da página inicial, telefone do cadastro presente no site (nome, endereço e telefone iguais em todo lugar), sitemap XML e, para negócio local, o Perfil da Empresa no Google.
+- **Concorrentes**: liste até 8 em `concorrentes` e o relatório mostra quem as IAs citam em cada pergunta, você ou eles.
+- **Perguntas de mercado**: "Quais são as melhores empresas de {servico} em {cidade}?", "Qual {segmento} você recomenda em {cidade}?", "Quais são as alternativas à {concorrente}?".
+
+Para empresa, use um repositório com qualquer nome (ex.: `suaempresa/presenca`). O resumo vai para `PERFIL.md` e o `snippet-jsonld.html` vai para o `<head>` da página inicial do site. Agências podem manter um repositório por cliente.
+
 ## O que ele não faz
 
 Não faz a IA "te encontrar" por mágica. Ele mede, aponta e deixa o seu trabalho legível e conectado. O que faz alguém aparecer de verdade é trabalho público: projetos, artigos, contribuições e outras pessoas citando você. Cada verificação diz se é **comprovada**, **provável** ou **aposta**; leia [docs/EVIDENCIAS.md](docs/EVIDENCIAS.md).
@@ -31,7 +42,7 @@ Não faz a IA "te encontrar" por mágica. Ele mede, aponta e deixa o seu trabalh
 ## Como usar
 
 1. Clique em **Use this template → Create a new repository** e dê ao repositório **o mesmo nome do seu usuário** (ex.: `mariasouza/mariasouza`). É esse repositório especial que o GitHub mostra no topo do seu perfil.
-2. Edite o `perfil.yml` com os seus dados. Se preferir, preencha o [formulário](https://qartt.github.io/eu-na-ia/gerador.html) e cole o resultado.
+2. Edite o `perfil.yml` com os seus dados (ou os da empresa, ver [Modo empresa](#modo-empresa)). Se preferir, preencha o [formulário](https://qartt.github.io/eu-na-ia/gerador.html) e cole o resultado.
 3. Salve (*Commit changes*). Em cerca de um minuto, a Action gera o README, a página e o relatório.
 4. **Página pessoal (opcional):** em *Settings → Pages*, escolha **Source: GitHub Actions**. A página fica em `usuario.github.io/usuario`.
 5. **Medição nas IAs (opcional):** em *Settings → Secrets and variables → Actions → New repository secret*, cadastre uma ou mais chaves:
@@ -50,7 +61,7 @@ O check-up roda sozinho todo dia 1 e sempre que você altera o `perfil.yml`. Par
 ## Personalizar
 
 - Escreva o que quiser no README entre `<!-- livre:inicio -->` e `<!-- livre:fim -->`. Esse trecho é preservado em todas as atualizações.
-- Troque as perguntas em `medicao.perguntas`. Variáveis disponíveis: `{nome}`, `{titulo}`, `{cidade}`, `{estado}`, `{especialidade}` e `{projeto}`.
+- Troque as perguntas em `medicao.perguntas`. Variáveis: `{nome}`, `{titulo}`, `{cidade}`, `{estado}`, `{especialidade}` e `{projeto}`; no modo empresa também `{segmento}`, `{servico}` e `{concorrente}`.
 - Os modelos de IA mudam com frequência. Se algum for descontinuado, ajuste `medicao.modelos`.
 
 ## Privacidade
@@ -69,7 +80,7 @@ npm test
 
 ## Projetos relacionados
 
-Existem várias ferramentas open source de "visibilidade em IA" (GEO/AEO) voltadas para **marcas**, como o [Limelit Open](https://github.com/limelitgeo/open) e o [Aperture](https://github.com/anyin-ai/aperture). O Eu na IA é focado em **pessoa desenvolvedora**, roda como template de perfil do GitHub sem servidor e é em português.
+Existem várias ferramentas open source de "visibilidade em IA" (GEO/AEO) para **marcas**, como o [Limelit Open](https://github.com/limelitgeo/open) e o [Aperture](https://github.com/anyin-ai/aperture), com dashboards e servidor próprio. O Eu na IA é mais simples de propósito: roda como template do GitHub sem servidor, é em português, cobre também a pessoa desenvolvedora, separa o que tem evidência do que é aposta e entrega a correção (dados estruturados e textos), não só a medição.
 
 ## Licença
 

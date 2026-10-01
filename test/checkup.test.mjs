@@ -286,3 +286,117 @@ test('cli: execução completa gera todos os arquivos e o histórico é por usu�
 	const hist3 = JSON.parse(await readFile(path.join(dir, 'relatorio/historico.json'), 'utf8'));
 	assert.deepEqual(hist3.map((h) => [h.data, h.ia]), [['2026-10-01', 100], ['2026-11-01', null]]);
 });
+
+/* ---------- modo empresa ---------- */
+const EMPRESA = {
+	tipo: 'empresa',
+	nome: 'Padaria Boa Massa',
+	apelidos: ['Boa Massa'],
+	segmento: 'Padaria artesanal',
+	descricao: 'Pães de fermentação natural no Sion.',
+	servicos: ['Pão de fermentação natural', 'Café da manhã'],
+	site: 'https://boamassa.com.br',
+	cidade: 'Belo Horizonte', estado: 'MG', pais: 'Brasil',
+	negocio_local: true,
+	endereco: 'Rua das Flores, 100',
+	telefone: '+55 31 3333-4444',
+	links: { instagram: 'https://instagram.com/boamassa', google_negocio: 'https://maps.app.goo.gl/abc', linkedin: '' },
+	concorrentes: [{ nome: 'Pão Dourado', site: 'https://paodourado.com.br' }, 'Forno Real'],
+	medicao: { motores: ['anthropic'], perguntas: ['Melhores lugares para {servico} em {cidade}?', 'Qual {segmento} você recomenda em {cidade}?', 'Alternativas à {concorrente}?'] }
+};
+const empresa = () => validarPerfil(structuredClone(EMPRESA));
+
+test('empresa: valida sem usuario_github e exige segmento e site', () => {
+	const e = empresa();
+	assert.equal(e.tipo, 'empresa');
+	assert.equal(e.titulo, 'Padaria artesanal');
+	assert.equal(e.id, 'empresa-padaria-boa-massa');
+	assert.equal(e.github_url, '');
+	assert.equal(e.publicar_pages, false);
+	assert.deepEqual(e.concorrentes.map((c) => c.nome), ['Pão Dourado', 'Forno Real']);
+	assert.throws(() => validarPerfil({ tipo: 'empresa', nome: 'X' }), (err) => err.message.includes('"segmento"') && err.message.includes('"site"'));
+	assert.throws(() => validarPerfil({ tipo: 'loja', nome: 'X' }), /tipo/);
+});
+
+test('empresa: LocalBusiness com endereço, telefone e sameAs', () => {
+	const ld = profilePageJsonLd(empresa());
+	assert.equal(ld['@type'], 'LocalBusiness');
+	assert.equal(ld.address.streetAddress, 'Rua das Flores, 100');
+	assert.equal(ld.telephone, '+55 31 3333-4444');
+	assert.deepEqual(ld.sameAs, ['https://instagram.com/boamassa', 'https://maps.app.goo.gl/abc']);
+	const org = profilePageJsonLd(validarPerfil({ ...structuredClone(EMPRESA), negocio_local: false }));
+	assert.equal(org['@type'], 'Organization');
+	assert.ok(extrairJsonLd(snippetSite(empresa())).some((o) => o['@type'] === 'LocalBusiness'));
+	assert.ok(llmsTxt(empresa()).includes('## Canais oficiais'));
+	assert.ok(readmePerfil(empresa()).includes('## Serviços'));
+});
+
+test('empresa: perguntas com segmento em minúscula e concorrente', () => {
+	assert.deepEqual(montarPerguntas(empresa()), ['Melhores lugares para Pão de fermentação natural em Belo Horizonte?', 'Qual padaria artesanal você recomenda em Belo Horizonte?', 'Alternativas à Pão Dourado?']);
+});
+
+function fakeEmpresa({ html, robots = 'User-agent: *\nAllow: /\nSitemap: https://boamassa.com.br/mapa.xml' } = {}) {
+	return async (url) => {
+		const u = String(url);
+		if (u === 'https://boamassa.com.br/') return resp(200, html, 'text');
+		if (u === 'https://boamassa.com.br/robots.txt') return resp(200, robots, 'text');
+		if (u === 'https://boamassa.com.br/mapa.xml') return resp(200, '<urlset/>', 'text');
+		if (u.startsWith('https://api.anthropic.com')) return resp(200, { content: [{ type: 'text', text: 'Recomendo a Pão Dourado e a Boa Massa. Veja paodourado.com.br.' }] });
+		if (u.startsWith('https://api.github.com')) throw new Error('não deveria consultar o GitHub pessoal');
+		return resp(404, '', 'text');
+	};
+}
+
+test('empresa: auditoria do site (organização, sameAs parcial, título, descrição, telefone, sitemap, Google)', async () => {
+	const ld = { '@context': 'https://schema.org', '@type': 'Bakery', name: 'Padaria Boa Massa', sameAs: ['https://instagram.com/boamassa'] };
+	const html = `<html><head><title>Padaria Boa Massa | Pães artesanais</title><meta name="description" content="Padaria de fermentação natural no Sion, Belo Horizonte."><script type="application/ld+json">${JSON.stringify(ld)}</script></head><body>Ligue (31) 3333-4444</body></html>`;
+	const { itens } = await auditar(empresa(), { fetchImpl: fakeEmpresa({ html }) });
+	const st = Object.fromEntries(itens.map((i) => [i.id, i.status]));
+	assert.equal(st.site_org, 'ok');
+	assert.equal(st.site_sameas, 'atencao');    // falta o Google
+	assert.equal(st.site_titulo, 'ok');
+	assert.equal(st.site_descricao, 'ok');
+	assert.equal(st.site_telefone, 'ok');
+	assert.equal(st.sitemap, 'ok');
+	assert.equal(st.google_negocio, 'ok');
+	assert.equal(st.gh_nome, undefined);
+});
+
+test('empresa: site sem dados nem título reprova os itens certos', async () => {
+	const { itens } = await auditar(empresa(), { fetchImpl: fakeEmpresa({ html: '<html><body>oi</body></html>', robots: 'User-agent: *\nDisallow: /privado' }) });
+	const st = Object.fromEntries(itens.map((i) => [i.id, i.status]));
+	assert.equal(st.site_org, 'falha');
+	assert.equal(st.site_titulo, 'falha');
+	assert.equal(st.site_descricao, 'falha');
+	assert.equal(st.site_telefone, 'atencao');
+	assert.equal(st.sitemap, 'falha');
+});
+
+test('empresa: medição compara com concorrentes', async () => {
+	const m = await medir(empresa(), { env: { ANTHROPIC_API_KEY: 'k' }, fetchImpl: fakeEmpresa({ html: '' }) });
+	assert.equal(m.resultados.length, 3);
+	assert.deepEqual(m.resultados[0].concorrentes, ['Pão Dourado']);
+	assert.equal(m.taxa, 100);
+	assert.deepEqual(m.participacao.map((x) => [x.nome, x.taxa]), [['Padaria Boa Massa', 100], ['Pão Dourado', 100], ['Forno Real', 0]]);
+});
+
+test('empresa: cli gera PERFIL.md mesmo em repositório dono/dono e relatório com concorrentes', async () => {
+	const dir = await mkdtemp(path.join(os.tmpdir(), 'eunaia-emp-'));
+	await writeFile(path.join(dir, 'perfil.yml'), YAML.stringify(EMPRESA));
+	const html = '<html><head><title>Boa Massa</title></head></html>';
+	const r = await executar({ dir, env: { GITHUB_REPOSITORY: 'boamassa/boamassa', ANTHROPIC_API_KEY: 'k' }, fetchImpl: fakeEmpresa({ html }), data: '2026-10-01', log: () => {} });
+	assert.equal(r.destino, 'PERFIL.md');
+	const checkup = await readFile(path.join(dir, 'relatorio/CHECKUP.md'), 'utf8');
+	assert.ok(checkup.includes('Presença da marca'));
+	assert.ok(checkup.includes('Quem as IAs citaram'));
+	assert.ok(checkup.includes('Concorrentes citados'));
+	const hist = JSON.parse(await readFile(path.join(dir, 'relatorio/historico.json'), 'utf8'));
+	assert.equal(hist[0].usuario, 'empresa-padaria-boa-massa');
+	assert.ok(extrairJsonLd(await readFile(path.join(dir, 'site/index.html'), 'utf8')).some((o) => o['@type'] === 'LocalBusiness'));
+});
+
+test('exemplos/empresa.yml e exemplos/pessoa.yml são válidos', async () => {
+	for (const f of ['../exemplos/empresa.yml', '../exemplos/pessoa.yml']) {
+		validarPerfil(YAML.parse(await readFile(new URL(f, import.meta.url), 'utf8')));
+	}
+});

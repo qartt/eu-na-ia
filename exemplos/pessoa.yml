@@ -1,0 +1,71 @@
+# ─────────────────────────────────────────────────────────────
+# Eu na IA — check-up de presença profissional para devs
+# Preencha com os seus dados. TUDO AQUI SERÁ PÚBLICO.
+# Depois de salvar, a Action gera o README do perfil, a página,
+# os dados estruturados e o relatório em relatorio/CHECKUP.md.
+# ─────────────────────────────────────────────────────────────
+
+nome: João Cabral
+# Outras formas como você é chamado (ajuda a reconhecer menções)
+apelidos:
+  - João Cabral Qartt
+usuario_github: qartt
+
+titulo: Desenvolvedor WordPress e especialista em SEO
+cidade: Belo Horizonte
+estado: MG
+pais: Brasil
+
+sobre: >
+  Desenvolvo plugins WordPress sob medida e estratégias de SEO técnico
+  para empresas B2B. Mantenho o GeoSim, biblioteca open source de
+  simulações geofísicas didáticas.
+
+especialidades:
+  - WordPress
+  - PHP
+  - SEO técnico
+  - Plugins WordPress sob medida
+
+idiomas:
+  - Português
+  - Inglês
+
+# Seu site principal (onde o JSON-LD e o llms.txt deveriam morar)
+site: https://qartt.com.br
+
+empresa:
+  nome: Qartt Tecnologia
+  site: https://qartt.com.br
+
+# Perfis públicos. Deixe em branco o que não tiver.
+links:
+  linkedin: ""
+  outros: []
+
+projetos_destaque:
+  - nome: GeoSim
+    repo: qartt/geosim
+    url: https://qartt.github.io/geosim/
+    descricao: Simulações geofísicas didáticas como Web Components, sem dependências.
+
+# ── Medição nas IAs (opcional) ───────────────────────────────
+# Só roda para os motores que tiverem chave cadastrada em
+# Settings → Secrets and variables → Actions.
+# Os modelos mudam com frequência: ajuste se algum for descontinuado.
+medicao:
+  motores: [anthropic, openai, gemini, perplexity]
+  modelos:
+    anthropic: claude-haiku-4-5-20251001
+    openai: gpt-4.1-mini
+    gemini: gemini-2.5-flash
+    perplexity: sonar
+  # {nome}, {titulo}, {cidade}, {estado}, {especialidade} e {projeto}
+  # são trocados pelos seus dados (primeira especialidade e primeiro projeto).
+  perguntas:
+    - Quem é {nome}, {titulo} em {cidade}?
+    - Indique desenvolvedores de {especialidade} em {cidade}, {estado}.
+    - Quem criou o projeto open source {projeto}?
+
+# Publica a página em usuario.github.io/repositorio via GitHub Pages
+publicar_pages: true

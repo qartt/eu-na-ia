@@ -1,8 +1,8 @@
 {
   "name": "eu-na-ia",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Check-up de presença profissional para devs: mede o que as IAs dizem sobre você, aponta inconsistências e gera perfil e dados estruturados. Roda no GitHub Actions.",
+  "description": "Check-up de presença para devs e empresas: mede o que as IAs dizem, aponta inconsistências e gera dados estruturados. Roda no GitHub Actions.",
   "type": "module",
   "scripts": {
     "checkup": "node src/cli.mjs",

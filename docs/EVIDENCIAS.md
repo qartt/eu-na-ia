@@ -26,6 +26,16 @@ Boas práticas com efeito indireto plausível, sem medição pública direta do 
 
 **Perfil e repositórios completos no GitHub.** Bio, localização, repositórios fixados, descrição, site e tópicos nos projetos. É o que aparece nos resultados de busca e o que um modelo lê ao abrir o seu perfil.
 
+### No modo empresa
+
+**Dados estruturados Organization / LocalBusiness.** O Google documenta os tipos [Organization](https://developers.google.com/search/docs/appearance/structured-data/organization) e [LocalBusiness](https://developers.google.com/search/docs/appearance/structured-data/local-business). Mesmo raciocínio do Person: ajudam buscadores, e as IAs com busca dependem deles.
+
+**Nome, endereço e telefone iguais em todo lugar.** Prática consolidada de SEO local. Divergências dificultam saber que o site, o Google e as redes são a mesma empresa.
+
+**Perfil da Empresa no Google.** Para negócio local, é a principal fonte do Google para buscas e mapas, e aparece com frequência como fonte nas respostas com busca.
+
+**Título, meta description e sitemap.** O título e a descrição são o que os buscadores mostram e o que um modelo lê primeiro; o sitemap ajuda os robôs a encontrar as páginas. Efeito nas IAs: indireto.
+
 ## Aposta
 
 Convenções emergentes sem evidência de uso pelas IAs hoje. Baratas de adotar, mas não espere resultado.

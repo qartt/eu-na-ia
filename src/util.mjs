@@ -1,4 +1,4 @@
-export const VERSAO = '1.0.0';
+export const VERSAO = '1.1.0';
 export const PROJETO_URL = 'https://github.com/qartt/eu-na-ia';
 export const USER_AGENT = `EuNaIA-Checkup/${VERSAO} (+${PROJETO_URL})`;
 

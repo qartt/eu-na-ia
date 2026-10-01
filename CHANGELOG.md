@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+
+- Modo empresa (`tipo: empresa`): dados estruturados Organization ou LocalBusiness, verificações de título, meta description, telefone no site, sitemap e Perfil da Empresa no Google.
+- Comparação com concorrentes: quem as IAs citam em cada pergunta e participação de cada nome.
+- Formulário gerador com opção "Para uma empresa".
+- Exemplos em `exemplos/pessoa.yml` e `exemplos/empresa.yml`.
+
 ## 1.0.0
 
 - Auditoria de presença no GitHub e no site, com nota ponderada por nível de evidência.
